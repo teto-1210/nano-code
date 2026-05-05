@@ -1,4 +1,8 @@
 node_modules/
 dist/
+build/
 
 doc/textbook.epub
+
+.env
+.env.*
