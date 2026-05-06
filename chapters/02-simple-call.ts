@@ -23,6 +23,8 @@ async function callOpenAI() {
 
     // [CHECK] dataの型がunkown
     const data = await response.json();
+    // for debug
+    // console.log(data);
     console.log(data.choices[0].message.content);
 
 }
