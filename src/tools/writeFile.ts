@@ -26,6 +26,7 @@ async function writeFileExecute(args: {
 export const writeFile = {
     name: "writeFile",
     description: 'ワークスペース内の指定されたパスにファイルを作成または上書きする。存在しないディレクトリが含まれている場合は自動的に作成される。',
+    needsApproval: true,
     parameters: {
         type: 'object',
         properties: {

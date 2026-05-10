@@ -2,6 +2,7 @@
 export type Tool = {
     name: string;
     description: string;
+    needsApproval: boolean;
     parameters: Record<string, any>;
     execute: (args: Record<string, unknown>) => Promise<string>;
 };
