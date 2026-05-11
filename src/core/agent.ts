@@ -24,6 +24,8 @@ async function executeTool(tool: Tool, args: any): Promise<string> {
     }
 }
 
+
+
 /**
  * Agen Class
  */
@@ -48,7 +50,7 @@ export class Agent {
 
     async generate(userPrompt: string): Promise<{text: string}> {
 
-        const messages: Message[] = [
+        let messages: Message[] = [
             { role: "system", content: this.instructions },
             { role: "user", content: userPrompt },
         ];
@@ -59,6 +61,8 @@ export class Agent {
 
         while (currentStep < this.maxSteps) {
             currentStep++;
+
+            messages = this.manageContext(messages);
 
             if(this.verbose) {
                 console.log(`\n===ステップ ${currentStep}/${this.maxSteps} ===`);
@@ -150,4 +154,52 @@ export class Agent {
         return { text: finalText };
 
     }
+
+    private manageContext(messages: Message[]): Message[] {
+
+        const CHAR_LIMIT = 30000;
+
+        let totalLength = messages.reduce((sum, m) => sum + m.content.length, 0);
+
+        if(totalLength < CHAR_LIMIT) {
+            return messages;
+        }
+
+        console.log(`\n[Context] 会話履歴を圧縮します (現在: ${totalLength}文字)`);
+    
+        const systemMessage = messages[0];
+        if(!systemMessage) {
+            return messages;
+        }
+
+        const recentMessages = messages.slice(-4);
+
+        let middleMessages = messages.slice(1, -4);
+
+        middleMessages = middleMessages.map(msg => {
+            if(msg.role === 'tool' && msg.content.length > 200) {
+                return {
+                    ...msg,
+                    content: `（以前のツール実行結果は省略されました: ${msg.content.length}文字）`
+                };
+            }
+            return msg;
+        });
+
+        totalLength = systemMessage.content.length + 
+            middleMessages.reduce((sum, m) => sum + m.content.length, 0) + 
+            recentMessages.reduce((sum, m) => sum + m.content.length, 0);
+
+        while (totalLength > CHAR_LIMIT && middleMessages.length > 0) {
+            const removed = middleMessages.shift();
+            if(removed) {
+                totalLength -= removed.content.length;
+            }
+        }
+
+        return [systemMessage, ...middleMessages, ...recentMessages];        
+    
+    }
 }
+
+
